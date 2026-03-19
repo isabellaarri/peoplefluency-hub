@@ -1,101 +1,103 @@
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
-import { PackageCheck, Star, TrendingUp, Calendar } from "lucide-react";
-import { motion } from "framer-motion";
+import { PackageCheck, Star, TrendingUp, Calendar, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 const valores = [
-  "Satisfação do Cliente em Primeiro Lugar",
-  "Segurança é Inegociável",
-  "Inovar com Simplicidade",
-  "Se Apaixonar Pelo Problema",
-  "Gerar Valor Para o Nosso Ecossistema",
-  "Desafio é a Nossa Diversão",
+  { name: "Satisfação do Cliente em Primeiro Lugar", short: "Cliente", color: "bg-fluency-blue/10 text-fluency-blue border-fluency-blue/20" },
+  { name: "Segurança é Inegociável", short: "Segurança", color: "bg-destructive/10 text-destructive border-destructive/20" },
+  { name: "Inovar com Simplicidade", short: "Inovação", color: "bg-primary/10 text-primary border-primary/20" },
+  { name: "Se Apaixonar Pelo Problema", short: "Problema", color: "bg-fluency-orange/10 text-fluency-orange border-fluency-orange/20" },
+  { name: "Gerar Valor Para o Nosso Ecossistema", short: "Ecossistema", color: "bg-fluency-green/10 text-fluency-green border-fluency-green/20" },
+  { name: "Desafio é a Nossa Diversão", short: "Desafio", color: "bg-fluency-pink/10 text-fluency-pink border-fluency-pink/20" },
 ];
 
 const entregas = [
-  { name: "Aimee Nascimento", semana: "10–14 Mar", entrega: "Implementação do novo fluxo de onboarding educacional", valor: "Inovar com Simplicidade", rating: 5, loopEtapa: "Entrega de Produto" },
-  { name: "Carlos Spezin", semana: "10–14 Mar", entrega: "Renegociação de contratos B2B com 15% de economia", valor: "Gerar Valor Para o Nosso Ecossistema", rating: 5, loopEtapa: "Operação Escalável" },
-  { name: "Bruna Gavazzoni", semana: "10–14 Mar", entrega: "Lançamento campanha parceria educacional", valor: "Satisfação do Cliente em Primeiro Lugar", rating: 4, loopEtapa: "Geração de Demanda" },
-  { name: "Eduardo Paulino", semana: "10–14 Mar", entrega: "Redução de 30% no tempo de resposta do CX", valor: "Se Apaixonar Pelo Problema", rating: 5, loopEtapa: "Operação Escalável" },
-  { name: "Thayna Simoes", semana: "10–14 Mar", entrega: "Automação de fluxos CRM para nutrição de leads", valor: "Inovar com Simplicidade", rating: 4, loopEtapa: "Conversão IA + Humano" },
+  { name: "Aimee Nascimento", semana: "10–14 Mar", entrega: "Implementação do novo fluxo de onboarding educacional", valor: 2, loopEtapa: "Entrega de Produto", rating: 5 },
+  { name: "Carlos Spezin", semana: "10–14 Mar", entrega: "Renegociação de contratos B2B com 15% de economia", valor: 4, loopEtapa: "Operação Escalável", rating: 5 },
+  { name: "Bruna Gavazzoni", semana: "10–14 Mar", entrega: "Lançamento campanha parceria educacional", valor: 0, loopEtapa: "Geração de Demanda", rating: 4 },
+  { name: "Eduardo Paulino", semana: "10–14 Mar", entrega: "Redução de 30% no tempo de resposta do CX", valor: 3, loopEtapa: "Operação Escalável", rating: 5 },
+  { name: "Thayna Simoes", semana: "10–14 Mar", entrega: "Automação de fluxos CRM para nutrição de leads", valor: 2, loopEtapa: "Conversão IA + Humano", rating: 4 },
 ];
 
-const valorColors: Record<string, string> = {
-  "Satisfação do Cliente em Primeiro Lugar": "bg-fluency-blue/15 text-fluency-blue",
-  "Segurança é Inegociável": "bg-destructive/15 text-destructive",
-  "Inovar com Simplicidade": "bg-primary/15 text-primary",
-  "Se Apaixonar Pelo Problema": "bg-fluency-orange/15 text-fluency-orange",
-  "Gerar Valor Para o Nosso Ecossistema": "bg-fluency-green/15 text-fluency-green",
-  "Desafio é a Nossa Diversão": "bg-fluency-pink/15 text-fluency-pink",
-};
-
 export default function EntregasPage() {
+  const [search, setSearch] = useState("");
+  const filtered = entregas.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
+
   return (
     <>
-      <PageHeader title="Entregas Semanais" subtitle="Acompanhamento de entregas vinculadas aos valores e ao loop de valor">
-        <Button className="gradient-brand text-primary-foreground border-0">Registrar Entrega</Button>
+      <PageHeader title="Entregas Semanais" subtitle="Entregas vinculadas aos valores e ao loop de valor">
+        <Button size="sm" className="gradient-brand text-primary-foreground border-0 text-[13px]">
+          <Plus className="h-3.5 w-3.5 mr-1" /> Registrar Entrega
+        </Button>
       </PageHeader>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        <StatCard title="Entregas Esta Semana" value={42} icon={PackageCheck} variant="purple" />
-        <StatCard title="Nota Média" value="4.3" subtitle="de 5.0" icon={Star} variant="green" />
-        <StatCard title="Valor Mais Citado" value="Inovar" subtitle="com Simplicidade" icon={TrendingUp} variant="blue" />
-        <StatCard title="Semana Atual" value="S12" subtitle="17–21 Mar 2026" icon={Calendar} variant="orange" />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+        <StatCard title="Entregas" value={42} subtitle="esta semana" icon={PackageCheck} variant="purple" />
+        <StatCard title="Nota Média" value="4.3" icon={Star} variant="green" />
+        <StatCard title="Valor + Citado" value="Inovar" icon={TrendingUp} variant="blue" />
+        <StatCard title="Semana" value="S12" subtitle="17–21 Mar" icon={Calendar} variant="orange" />
       </div>
 
-      {/* Valores Grid */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="rounded-xl border border-border bg-card p-6 mb-6">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Valores Fluency</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {valores.map((v, i) => (
-            <div key={i} className={`rounded-lg px-4 py-3 text-sm font-medium ${valorColors[v]}`}>
-              {v}
-            </div>
-          ))}
-        </div>
-      </motion.div>
+      {/* Values */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {valores.map((v, i) => (
+          <span key={i} className={`rounded-md border px-2.5 py-1 text-[11px] font-medium ${v.color}`}>
+            {v.name}
+          </span>
+        ))}
+      </div>
 
-      {/* Entregas Table */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/30">
-                <th className="px-4 py-3 text-left font-semibold text-foreground">Colaborador</th>
-                <th className="px-4 py-3 text-left font-semibold text-foreground">Entrega</th>
-                <th className="px-4 py-3 text-left font-semibold text-foreground">Valor</th>
-                <th className="px-4 py-3 text-center font-semibold text-foreground">Loop</th>
-                <th className="px-4 py-3 text-center font-semibold text-foreground">Nota</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entregas.map((e, i) => (
-                <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                  <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{e.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground max-w-[250px]">{e.entrega}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-medium ${valorColors[e.valor]}`}>
-                      {e.valor.split(" ").slice(0, 3).join(" ")}…
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <Badge variant="secondary" className="text-xs">{e.loopEtapa}</Badge>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <div className="flex items-center justify-center gap-0.5">
-                      {Array.from({ length: 5 }).map((_, j) => (
-                        <Star key={j} className={`h-3.5 w-3.5 ${j < e.rating ? "fill-warning text-warning" : "text-muted"}`} />
-                      ))}
+      {/* Search */}
+      <div className="relative max-w-xs mb-3">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <Input placeholder="Buscar..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 h-8 text-[13px]" />
+      </div>
+
+      {/* Table */}
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <table className="w-full text-[13px]">
+          <thead>
+            <tr className="border-b border-border bg-muted/40">
+              <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Colaborador</th>
+              <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Entrega</th>
+              <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Valor</th>
+              <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Loop</th>
+              <th className="px-3 py-2.5 text-center font-medium text-muted-foreground">Nota</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((e, i) => (
+              <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer">
+                <td className="px-3 py-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[9px] font-semibold text-primary">
+                      {e.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </motion.div>
+                    <span className="font-medium text-foreground">{e.name}</span>
+                  </div>
+                </td>
+                <td className="px-3 py-2.5 text-muted-foreground max-w-[250px] truncate">{e.entrega}</td>
+                <td className="px-3 py-2.5">
+                  <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${valores[e.valor].color}`}>
+                    {valores[e.valor].short}
+                  </span>
+                </td>
+                <td className="px-3 py-2.5 text-muted-foreground text-[12px]">{e.loopEtapa}</td>
+                <td className="px-3 py-2.5 text-center">
+                  <div className="flex items-center justify-center gap-0.5">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <Star key={j} className={`h-3 w-3 ${j < e.rating ? "fill-warning text-warning" : "text-muted"}`} />
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 }
