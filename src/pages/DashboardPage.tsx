@@ -1,141 +1,112 @@
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
-import { Users, ClipboardCheck, Target, Heart, PackageCheck, RefreshCw, TrendingUp, AlertCircle } from "lucide-react";
-import { motion } from "framer-motion";
+import { Users, ClipboardCheck, Target, Heart, PackageCheck, RefreshCw, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
-const recentActivities = [
-  { user: "Ana Vazquez", action: "Registrou 1:1 com equipe de Cursos", time: "2h atrás", type: "1:1" },
-  { user: "Jullie Costa", action: "Atualizou PDI — Foco Estratégico", time: "3h atrás", type: "pdi" },
-  { user: "Carlos Spezin", action: "Enviou avaliação 360° completa", time: "5h atrás", type: "avaliacao" },
-  { user: "Thayna Simoes", action: "Registrou sentimento da equipe CRM", time: "1d atrás", type: "sentimento" },
-  { user: "Eduardo Paulino", action: "Entrega semanal — Operação Eficiente", time: "1d atrás", type: "entrega" },
+const modules = [
+  { title: "Avaliação de Desempenho", desc: "Ciclo de Avaliação de Potencial 2026", icon: ClipboardCheck, url: "/avaliacao", stat: "82% completas", color: "text-primary" },
+  { title: "1:1 — Devolutivas", desc: "Registros de conversas e feedback SCCS", icon: Users, url: "/one-on-one", stat: "45 realizadas", color: "text-fluency-blue" },
+  { title: "PDI", desc: "Planos de Desenvolvimento Individual", icon: Target, url: "/pdi", stat: "156 ativos", color: "text-fluency-green" },
+  { title: "Sentimentos", desc: "Pulse check contínuo da equipe", icon: Heart, url: "/sentimentos", stat: "4.2 média", color: "text-fluency-pink" },
+  { title: "Entregas Semanais", desc: "Entregas vinculadas aos valores", icon: PackageCheck, url: "/entregas", stat: "42 esta semana", color: "text-fluency-orange" },
+  { title: "Loop de Valor", desc: "5 etapas do ciclo de valor Fluency", icon: RefreshCw, url: "/loop-valor", stat: "4.0 score", color: "text-primary" },
 ];
 
-const typeColors: Record<string, string> = {
-  "1:1": "bg-fluency-blue/15 text-fluency-blue",
-  pdi: "bg-fluency-green/15 text-fluency-green",
-  avaliacao: "bg-primary/15 text-primary",
-  sentimento: "bg-fluency-pink/15 text-fluency-pink",
-  entrega: "bg-fluency-orange/15 text-fluency-orange",
-};
+const pendingItems = [
+  { text: "5 devolutivas de avaliação pendentes", due: "Prazo: 27/03", priority: "high" },
+  { text: "3 PDIs sem atualização há +30 dias", due: "Revisar até 15/04", priority: "medium" },
+  { text: "Reunião People Planning Q2", due: "Agendada 15/04", priority: "low" },
+  { text: "Pesquisa de sentimentos — março", due: "Enviar até 21/03", priority: "medium" },
+];
 
-const pendingActions = [
-  { title: "5 devolutivas pendentes", desc: "Avaliação de Potencial — prazo 27/03", priority: "high" },
-  { title: "3 PDIs sem atualização", desc: "Última revisão há mais de 30 dias", priority: "medium" },
-  { title: "People Planning Q2", desc: "Reunião de alinhamento agendada para 15/04", priority: "low" },
+const recentActivity = [
+  { user: "Ana Vazquez", action: "registrou 1:1 com equipe de Cursos", time: "2h" },
+  { user: "Jullie Costa", action: "atualizou PDI — Foco Estratégico", time: "3h" },
+  { user: "Carlos Spezin", action: "enviou avaliação 360° completa", time: "5h" },
+  { user: "Thayna Simoes", action: "registrou sentimento da equipe CRM", time: "1d" },
 ];
 
 export default function DashboardPage() {
   return (
     <>
-      <PageHeader
-        title="Dashboard"
-        subtitle="Visão geral da gestão de pessoas — Fluency Academy"
-      />
+      <PageHeader title="Dashboard" subtitle="Visão geral da gestão de pessoas — Fluency Academy" />
 
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatCard title="Colaboradores" value={247} subtitle="12 áreas" icon={Users} variant="purple" />
-        <StatCard title="Avaliações Completas" value="82%" subtitle="203 de 247" icon={ClipboardCheck} variant="blue" trend={{ value: "+12% vs último ciclo", positive: true }} />
-        <StatCard title="PDIs Ativos" value={156} subtitle="63% do time" icon={Target} variant="green" />
-        <StatCard title="Sentimento Médio" value="4.2" subtitle="de 5.0" icon={Heart} variant="pink" trend={{ value: "+0.3 vs mês anterior", positive: true }} />
+        <StatCard title="Avaliações" value="82%" subtitle="203 de 247" icon={ClipboardCheck} variant="blue" trend={{ value: "+12%", positive: true }} />
+        <StatCard title="PDIs Ativos" value={156} icon={Target} variant="green" />
+        <StatCard title="Sentimento" value="4.2" subtitle="de 5.0" icon={Heart} variant="pink" trend={{ value: "+0.3", positive: true }} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Recent Activity */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.35 }}
-          className="lg:col-span-2 rounded-xl border border-border bg-card p-6"
-        >
-          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
-            Atividade Recente
-          </h2>
-          <div className="space-y-3">
-            {recentActivities.map((a, i) => (
-              <div key={i} className="flex items-center gap-4 rounded-lg p-3 transition-colors hover:bg-muted/50">
-                <div className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${typeColors[a.type]}`}>
-                  {a.type === "1:1" ? "1:1" : a.type.slice(0, 3)}
+        {/* Modules */}
+        <div className="lg:col-span-2 space-y-2">
+          <h2 className="text-sm font-semibold text-foreground mb-3">Módulos</h2>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {modules.map((m) => (
+              <Link
+                key={m.url}
+                to={m.url}
+                className="group flex items-center gap-3 rounded-lg border border-border bg-card p-3.5 transition-all hover:border-primary/30 hover:shadow-sm"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted">
+                  <m.icon className={`h-[18px] w-[18px] ${m.color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{a.user}</p>
-                  <p className="text-xs text-muted-foreground truncate">{a.action}</p>
+                  <p className="text-[13px] font-medium text-foreground">{m.title}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{m.desc}</p>
                 </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">{a.time}</span>
-              </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-medium text-muted-foreground">{m.stat}</span>
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </Link>
             ))}
           </div>
-        </motion.div>
+        </div>
 
-        {/* Pending Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, duration: 0.35 }}
-          className="rounded-xl border border-border bg-card p-6"
-        >
-          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-fluency-orange" />
-            Ações Pendentes
-          </h2>
-          <div className="space-y-3">
-            {pendingActions.map((a, i) => (
-              <div key={i} className="rounded-lg border border-border p-4 transition-colors hover:bg-muted/30">
+        {/* Pending */}
+        <div>
+          <h2 className="text-sm font-semibold text-foreground mb-3">Pendências</h2>
+          <div className="space-y-2">
+            {pendingItems.map((p, i) => (
+              <div key={i} className="rounded-lg border border-border bg-card p-3">
                 <div className="flex items-start gap-2">
-                  <div className={`mt-0.5 h-2 w-2 rounded-full shrink-0 ${
-                    a.priority === "high" ? "bg-destructive" : a.priority === "medium" ? "bg-warning" : "bg-fluency-blue"
+                  <div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${
+                    p.priority === "high" ? "bg-destructive" : p.priority === "medium" ? "bg-warning" : "bg-fluency-blue"
                   }`} />
                   <div>
-                    <p className="text-sm font-medium text-foreground">{a.title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{a.desc}</p>
+                    <p className="text-[13px] text-foreground">{p.text}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{p.due}</p>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-        </motion.div>
+
+          <h2 className="text-sm font-semibold text-foreground mt-6 mb-3">Atividade Recente</h2>
+          <div className="space-y-1">
+            {recentActivity.map((a, i) => (
+              <div key={i} className="flex items-center gap-3 rounded-md p-2 hover:bg-muted/50 transition-colors">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">
+                  {a.user.split(" ").map(n => n[0]).join("")}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] text-foreground truncate">
+                    <span className="font-medium">{a.user}</span> {a.action}
+                  </p>
+                </div>
+                <span className="text-[11px] text-muted-foreground">{a.time}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Loop de Valor Quick View */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35, duration: 0.35 }}
-        className="mt-6 rounded-xl border border-border bg-card p-6"
-      >
-        <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-          <RefreshCw className="h-5 w-5 text-primary" />
-          Loop de Valor — Resumo
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          {[
-            { name: "Fomento a Comunidade", score: 4.1, color: "bg-primary" },
-            { name: "Geração de Demanda", score: 3.8, color: "bg-fluency-orange" },
-            { name: "Conversão IA + Humano", score: 4.0, color: "bg-fluency-blue" },
-            { name: "Entrega de Produto", score: 4.3, color: "bg-fluency-green" },
-            { name: "Operação Escalável", score: 3.9, color: "bg-fluency-pink" },
-          ].map((item, i) => (
-            <div key={i} className="text-center p-4 rounded-lg bg-muted/30">
-              <div className={`mx-auto mb-2 h-12 w-12 rounded-full ${item.color}/15 flex items-center justify-center`}>
-                <span className="text-lg font-bold text-foreground">{item.score}</span>
-              </div>
-              <p className="text-xs font-medium text-muted-foreground leading-tight">{item.name}</p>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Valores */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.45, duration: 0.35 }}
-        className="mt-6 rounded-xl gradient-brand p-6 text-primary-foreground"
-      >
-        <h2 className="text-lg font-semibold mb-3">Nossos Valores</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Values bar */}
+      <div className="mt-6 rounded-lg gradient-brand p-4">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-white/70 mb-2">Nossos Valores</p>
+        <div className="flex flex-wrap gap-2">
           {[
             "Satisfação do Cliente em Primeiro Lugar",
             "Segurança é Inegociável",
@@ -144,12 +115,12 @@ export default function DashboardPage() {
             "Gerar Valor Para o Nosso Ecossistema",
             "Desafio é a Nossa Diversão",
           ].map((v, i) => (
-            <div key={i} className="rounded-lg bg-white/10 backdrop-blur-sm px-4 py-3 text-sm font-medium">
+            <span key={i} className="rounded-md bg-white/15 px-3 py-1.5 text-[12px] font-medium text-white">
               {v}
-            </div>
+            </span>
           ))}
         </div>
-      </motion.div>
+      </div>
     </>
   );
 }

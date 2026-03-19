@@ -1,26 +1,33 @@
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
-import { Target, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
-import { motion } from "framer-motion";
+import { Target, Clock, CheckCircle2, AlertTriangle, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useState } from "react";
 
 const pdis = [
-  { name: "Aimee Nascimento", competencia: "Foco Estratégico e Analítico", plano: "Aprimorar análise de dados", acoes: ["Dashboard para reunião mensal", "Shadowing com referência", "Curso Power BI"], progresso: 45, prazo: "Jun/2026", status: "Em dia" },
-  { name: "Bruna Gavazzoni", competencia: "Inovação", plano: "Desenvolver pensamento criativo", acoes: ["Workshop Design Thinking", "Projeto piloto inovação", "Mentoria externa"], progresso: 30, prazo: "Jul/2026", status: "Em dia" },
-  { name: "Lucas Silveira", competencia: "Conexão e Desenvolvimento", plano: "Fortalecer comunicação", acoes: ["Treinamento comunicação assertiva", "Liderar retrospectiva quinzenal"], progresso: 10, prazo: "Mai/2026", status: "Atrasado" },
-  { name: "Ana Paula Ferreira", competencia: "Execução Ágil", plano: "Melhorar gestão de tempo", acoes: ["Implementar método GTD", "Check-in semanal com gestor"], progresso: 70, prazo: "Abr/2026", status: "Em dia" },
-  { name: "Eduardo Paulino", competencia: "Foco Estratégico e Analítico", plano: "Storytelling de dados", acoes: ["Curso storytelling", "Apresentar em All Hands", "Mentoria com CMO"], progresso: 55, prazo: "Jun/2026", status: "Em dia" },
+  { name: "Aimee Nascimento", competencia: "Foco Estratégico e Analítico", plano: "Aprimorar análise de dados", acoes: [{ text: "Dashboard para reunião mensal", done: true }, { text: "Shadowing com referência em análise", done: false }, { text: "Curso Power BI", done: false }], progresso: 45, prazo: "Jun/2026", status: "Em dia" },
+  { name: "Bruna Gavazzoni", competencia: "Inovação", plano: "Desenvolver pensamento criativo", acoes: [{ text: "Workshop Design Thinking", done: true }, { text: "Projeto piloto inovação", done: false }, { text: "Mentoria externa", done: false }], progresso: 30, prazo: "Jul/2026", status: "Em dia" },
+  { name: "Lucas Silveira", competencia: "Conexão e Desenvolvimento", plano: "Fortalecer comunicação assertiva", acoes: [{ text: "Treinamento comunicação assertiva", done: false }, { text: "Liderar retrospectiva quinzenal", done: false }], progresso: 10, prazo: "Mai/2026", status: "Atrasado" },
+  { name: "Ana Paula Ferreira", competencia: "Execução Ágil", plano: "Melhorar gestão de tempo", acoes: [{ text: "Implementar método GTD", done: true }, { text: "Check-in semanal com gestor", done: true }], progresso: 70, prazo: "Abr/2026", status: "Em dia" },
+  { name: "Eduardo Paulino", competencia: "Foco Estratégico", plano: "Storytelling de dados", acoes: [{ text: "Curso storytelling", done: true }, { text: "Apresentar em All Hands", done: true }, { text: "Mentoria com CMO", done: false }], progresso: 55, prazo: "Jun/2026", status: "Em dia" },
 ];
 
 export default function PDIPage() {
+  const [search, setSearch] = useState("");
+  const filtered = pdis.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+
   return (
     <>
-      <PageHeader title="PDI — Plano de Desenvolvimento Individual" subtitle="Acompanhamento dos planos de ação por competência — modelo 70-20-10">
-        <Button className="gradient-brand text-primary-foreground border-0">Novo PDI</Button>
+      <PageHeader title="PDI" subtitle="Planos de Desenvolvimento Individual — modelo 70-20-10">
+        <Button size="sm" className="gradient-brand text-primary-foreground border-0 text-[13px]">
+          <Plus className="h-3.5 w-3.5 mr-1" /> Novo PDI
+        </Button>
       </PageHeader>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatCard title="PDIs Ativos" value={156} icon={Target} variant="purple" />
         <StatCard title="Em Dia" value="78%" icon={CheckCircle2} variant="green" />
         <StatCard title="Atrasados" value={18} icon={AlertTriangle} variant="orange" />
@@ -28,59 +35,63 @@ export default function PDIPage() {
       </div>
 
       {/* 70-20-10 */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="rounded-xl border border-border bg-card p-6 mb-6">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Modelo 70-20-10</h2>
+      <div className="rounded-lg border border-border bg-card p-4 mb-6">
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            { pct: "70%", title: "Experiências Práticas", desc: "Projetos, desafios, entregas reais", color: "bg-primary" },
-            { pct: "20%", title: "Aprendizado Social", desc: "Shadowing, mentoria, feedback", color: "bg-fluency-blue" },
-            { pct: "10%", title: "Educação Formal", desc: "Cursos, treinamentos, certificações", color: "bg-fluency-green" },
+            { pct: "70%", title: "Experiências Práticas", desc: "Projetos, desafios, entregas reais" },
+            { pct: "20%", title: "Aprendizado Social", desc: "Shadowing, mentoria, feedback" },
+            { pct: "10%", title: "Educação Formal", desc: "Cursos, treinamentos, certificações" },
           ].map((m, i) => (
-            <div key={i} className="rounded-lg border border-border p-4">
-              <div className={`text-3xl font-extrabold text-gradient-brand mb-1`}>{m.pct}</div>
-              <div className="text-sm font-semibold text-foreground">{m.title}</div>
-              <div className="text-xs text-muted-foreground mt-1">{m.desc}</div>
+            <div key={i} className="text-center">
+              <p className="text-2xl font-bold text-gradient-brand">{m.pct}</p>
+              <p className="text-[13px] font-medium text-foreground">{m.title}</p>
+              <p className="text-[11px] text-muted-foreground">{m.desc}</p>
             </div>
           ))}
         </div>
-      </motion.div>
+      </div>
+
+      {/* Search */}
+      <div className="relative max-w-xs mb-3">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <Input placeholder="Buscar colaborador..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 h-8 text-[13px]" />
+      </div>
 
       {/* PDI Cards */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        {pdis.map((p, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 + i * 0.05 }}
-            className="rounded-xl border border-border bg-card p-5"
-          >
+      <div className="space-y-3">
+        {filtered.map((p, i) => (
+          <div key={i} className="rounded-lg border border-border bg-card p-4 hover:border-primary/20 transition-colors cursor-pointer">
             <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="text-sm font-bold text-foreground">{p.name}</h3>
-                <p className="text-xs text-primary font-medium">{p.competencia}</p>
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
+                  {p.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                </div>
+                <div>
+                  <p className="text-[13px] font-medium text-foreground">{p.name}</p>
+                  <p className="text-[11px] text-primary">{p.competencia}</p>
+                </div>
               </div>
-              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                p.status === "Em dia" ? "bg-success/15 text-success" : "bg-warning/15 text-warning"
-              }`}>
-                {p.status}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                  p.status === "Em dia" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"
+                }`}>{p.status}</span>
+                <span className="text-[11px] text-muted-foreground">{p.prazo}</span>
+              </div>
             </div>
-            <p className="text-sm text-foreground font-medium mb-2">{p.plano}</p>
-            <div className="space-y-1 mb-3">
+            <p className="text-[13px] font-medium text-foreground mb-2 ml-11">{p.plano}</p>
+            <div className="space-y-1.5 ml-11 mb-3">
               {p.acoes.map((a, j) => (
-                <div key={j} className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary/50" />
-                  {a}
+                <div key={j} className="flex items-center gap-2">
+                  <Checkbox checked={a.done} className="h-3.5 w-3.5" />
+                  <span className={`text-[12px] ${a.done ? "line-through text-muted-foreground" : "text-foreground"}`}>{a.text}</span>
                 </div>
               ))}
             </div>
-            <div className="flex items-center gap-3">
-              <Progress value={p.progresso} className="flex-1 h-2" />
-              <span className="text-xs font-semibold text-foreground">{p.progresso}%</span>
+            <div className="flex items-center gap-3 ml-11">
+              <Progress value={p.progresso} className="flex-1 h-1.5" />
+              <span className="text-[11px] font-medium text-muted-foreground">{p.progresso}%</span>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-2">Prazo: {p.prazo}</p>
-          </motion.div>
+          </div>
         ))}
       </div>
     </>
