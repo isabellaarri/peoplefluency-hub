@@ -1,103 +1,144 @@
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { StatCard } from "@/components/StatCard";
-import { PackageCheck, Star, TrendingUp, Calendar, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
+import { deliveryStore, type WeeklyDelivery } from "@/lib/dataStore";
+import { PackageCheck, Plus } from "lucide-react";
+import { toast } from "sonner";
 
-const valores = [
-  { name: "Satisfação do Cliente em Primeiro Lugar", short: "Cliente", color: "bg-fluency-blue/10 text-fluency-blue border-fluency-blue/20" },
-  { name: "Segurança é Inegociável", short: "Segurança", color: "bg-destructive/10 text-destructive border-destructive/20" },
-  { name: "Inovar com Simplicidade", short: "Inovação", color: "bg-primary/10 text-primary border-primary/20" },
-  { name: "Se Apaixonar Pelo Problema", short: "Problema", color: "bg-fluency-orange/10 text-fluency-orange border-fluency-orange/20" },
-  { name: "Gerar Valor Para o Nosso Ecossistema", short: "Ecossistema", color: "bg-fluency-green/10 text-fluency-green border-fluency-green/20" },
-  { name: "Desafio é a Nossa Diversão", short: "Desafio", color: "bg-fluency-pink/10 text-fluency-pink border-fluency-pink/20" },
-];
-
-const entregas = [
-  { name: "Aimee Nascimento", semana: "10–14 Mar", entrega: "Implementação do novo fluxo de onboarding educacional", valor: 2, loopEtapa: "Entrega de Produto", rating: 5 },
-  { name: "Carlos Spezin", semana: "10–14 Mar", entrega: "Renegociação de contratos B2B com 15% de economia", valor: 4, loopEtapa: "Operação Escalável", rating: 5 },
-  { name: "Bruna Gavazzoni", semana: "10–14 Mar", entrega: "Lançamento campanha parceria educacional", valor: 0, loopEtapa: "Geração de Demanda", rating: 4 },
-  { name: "Eduardo Paulino", semana: "10–14 Mar", entrega: "Redução de 30% no tempo de resposta do CX", valor: 3, loopEtapa: "Operação Escalável", rating: 5 },
-  { name: "Thayna Simoes", semana: "10–14 Mar", entrega: "Automação de fluxos CRM para nutrição de leads", valor: 2, loopEtapa: "Conversão IA + Humano", rating: 4 },
+const loopStages = ["Fomento a Comunidade", "Geração de Demanda", "Conversão IA+Humano", "Entrega Encantadora", "Operação Eficiente"];
+const fluencyValues = [
+  "Satisfação do Cliente em Primeiro Lugar", "Segurança é Inegociável", "Inovar com Simplicidade",
+  "Se Apaixonar Pelo Problema", "Gerar Valor Para o Nosso Ecossistema", "Desafio é a Nossa Diversão",
 ];
 
 export default function EntregasPage() {
-  const [search, setSearch] = useState("");
-  const filtered = entregas.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
+  const { user, isAdmin, isLeader, getTeamMembers } = useAuth();
+  const [deliveries, setDeliveries] = useState<WeeklyDelivery[]>([]);
+  const [showNew, setShowNew] = useState(false);
+
+  useEffect(() => { refresh(); }, [user]);
+
+  const refresh = () => {
+    if (!user) return;
+    if (isAdmin) setDeliveries(deliveryStore.getAll());
+    else if (isLeader) {
+      const teamIds = getTeamMembers().map(m => m.id);
+      setDeliveries(deliveryStore.getAll().filter(d => teamIds.includes(d.userId) || d.userId === user.id));
+    } else setDeliveries(deliveryStore.getByUser(user.id));
+  };
 
   return (
     <>
-      <PageHeader title="Entregas Semanais" subtitle="Entregas vinculadas aos valores e ao loop de valor">
-        <Button size="sm" className="gradient-brand text-primary-foreground border-0 text-[13px]">
-          <Plus className="h-3.5 w-3.5 mr-1" /> Registrar Entrega
-        </Button>
+      <PageHeader title="Entregas Semanais" subtitle="Vincule entregas aos valores da Fluency e ao Loop de Valor">
+        <Dialog open={showNew} onOpenChange={setShowNew}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="gradient-brand text-white border-0 text-[13px] gap-1.5"><Plus className="h-3.5 w-3.5" /> Nova Entrega</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader><DialogTitle>Registrar Entrega</DialogTitle></DialogHeader>
+            <DeliveryForm user={user!} onSave={() => { setShowNew(false); refresh(); toast.success("Entrega registrada!"); }} />
+          </DialogContent>
+        </Dialog>
       </PageHeader>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-        <StatCard title="Entregas" value={42} subtitle="esta semana" icon={PackageCheck} variant="purple" />
-        <StatCard title="Nota Média" value="4.3" icon={Star} variant="green" />
-        <StatCard title="Valor + Citado" value="Inovar" icon={TrendingUp} variant="blue" />
-        <StatCard title="Semana" value="S12" subtitle="17–21 Mar" icon={Calendar} variant="orange" />
-      </div>
-
-      {/* Values */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {valores.map((v, i) => (
-          <span key={i} className={`rounded-md border px-2.5 py-1 text-[11px] font-medium ${v.color}`}>
-            {v.name}
-          </span>
-        ))}
-      </div>
-
-      {/* Search */}
-      <div className="relative max-w-xs mb-3">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-        <Input placeholder="Buscar..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 h-8 text-[13px]" />
-      </div>
-
-      {/* Table */}
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
-        <table className="w-full text-[13px]">
-          <thead>
-            <tr className="border-b border-border bg-muted/40">
-              <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Colaborador</th>
-              <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Entrega</th>
-              <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Valor</th>
-              <th className="px-3 py-2.5 text-left font-medium text-muted-foreground">Loop</th>
-              <th className="px-3 py-2.5 text-center font-medium text-muted-foreground">Nota</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((e, i) => (
-              <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer">
-                <td className="px-3 py-2.5">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[9px] font-semibold text-primary">
-                      {e.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
-                    </div>
-                    <span className="font-medium text-foreground">{e.name}</span>
-                  </div>
-                </td>
-                <td className="px-3 py-2.5 text-muted-foreground max-w-[250px] truncate">{e.entrega}</td>
-                <td className="px-3 py-2.5">
-                  <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${valores[e.valor].color}`}>
-                    {valores[e.valor].short}
-                  </span>
-                </td>
-                <td className="px-3 py-2.5 text-muted-foreground text-[12px]">{e.loopEtapa}</td>
-                <td className="px-3 py-2.5 text-center">
-                  <div className="flex items-center justify-center gap-0.5">
-                    {Array.from({ length: 5 }).map((_, j) => (
-                      <Star key={j} className={`h-3 w-3 ${j < e.rating ? "fill-warning text-warning" : "text-muted"}`} />
-                    ))}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {deliveries.length === 0 ? (
+        <div className="flex flex-col items-center py-16 text-center">
+          <PackageCheck className="h-10 w-10 text-muted-foreground/40 mb-3" />
+          <p className="text-sm text-muted-foreground mb-4">Nenhuma entrega registrada</p>
+          <Button size="sm" onClick={() => setShowNew(true)} className="gradient-brand text-white border-0">Registrar primeira entrega</Button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {deliveries.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(d => (
+            <div key={d.id} className="rounded-lg border border-border bg-card p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[13px] font-medium text-foreground">{d.description}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{d.userName} · Semana de {new Date(d.weekStart).toLocaleDateString("pt-BR")}</p>
+                </div>
+                <Badge variant={d.status === "entregue" ? "default" : d.status === "em_andamento" ? "secondary" : "outline"} className="text-[10px]">
+                  {d.status === "entregue" ? "Entregue" : d.status === "em_andamento" ? "Em andamento" : "Pendente"}
+                </Badge>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                <Badge variant="outline" className="text-[10px] bg-primary/5">{d.loopValorStage}</Badge>
+                <Badge variant="outline" className="text-[10px] bg-yellow-50 text-yellow-700">{d.fluencyValue}</Badge>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </>
+  );
+}
+
+function DeliveryForm({ user, onSave }: { user: any; onSave: () => void }) {
+  const [description, setDescription] = useState("");
+  const [weekStart, setWeekStart] = useState(new Date().toISOString().split("T")[0]);
+  const [loopStage, setLoopStage] = useState("");
+  const [value, setValue] = useState("");
+  const [status, setStatus] = useState<"entregue" | "em_andamento" | "pendente">("entregue");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    deliveryStore.create({
+      userId: user.id,
+      userName: user.name,
+      weekStart,
+      description,
+      loopValorStage: loopStage,
+      fluencyValue: value,
+      status,
+      createdAt: new Date().toISOString(),
+    });
+    onSave();
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-1.5">
+        <Label className="text-[12px]">Descrição da entrega</Label>
+        <Textarea rows={3} value={description} onChange={e => setDescription(e.target.value)} placeholder="O que foi entregue?" required />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label className="text-[12px]">Semana</Label>
+          <Input type="date" value={weekStart} onChange={e => setWeekStart(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-[12px]">Status</Label>
+          <Select value={status} onValueChange={(v: any) => setStatus(v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="entregue">Entregue</SelectItem>
+              <SelectItem value="em_andamento">Em andamento</SelectItem>
+              <SelectItem value="pendente">Pendente</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-[12px]">Etapa do Loop de Valor</Label>
+        <Select value={loopStage} onValueChange={setLoopStage}>
+          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+          <SelectContent>{loopStages.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-[12px]">Valor da Fluency</Label>
+        <Select value={value} onValueChange={setValue}>
+          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+          <SelectContent>{fluencyValues.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent>
+        </Select>
+      </div>
+      <Button type="submit" className="w-full gradient-brand text-white border-0" disabled={!description || !loopStage || !value}>Registrar Entrega</Button>
+    </form>
   );
 }
