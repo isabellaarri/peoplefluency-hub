@@ -1,99 +1,202 @@
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { StatCard } from "@/components/StatCard";
-import { Target, Clock, CheckCircle2, AlertTriangle, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useState } from "react";
-
-const pdis = [
-  { name: "Aimee Nascimento", competencia: "Foco Estratégico e Analítico", plano: "Aprimorar análise de dados", acoes: [{ text: "Dashboard para reunião mensal", done: true }, { text: "Shadowing com referência em análise", done: false }, { text: "Curso Power BI", done: false }], progresso: 45, prazo: "Jun/2026", status: "Em dia" },
-  { name: "Bruna Gavazzoni", competencia: "Inovação", plano: "Desenvolver pensamento criativo", acoes: [{ text: "Workshop Design Thinking", done: true }, { text: "Projeto piloto inovação", done: false }, { text: "Mentoria externa", done: false }], progresso: 30, prazo: "Jul/2026", status: "Em dia" },
-  { name: "Lucas Silveira", competencia: "Conexão e Desenvolvimento", plano: "Fortalecer comunicação assertiva", acoes: [{ text: "Treinamento comunicação assertiva", done: false }, { text: "Liderar retrospectiva quinzenal", done: false }], progresso: 10, prazo: "Mai/2026", status: "Atrasado" },
-  { name: "Ana Paula Ferreira", competencia: "Execução Ágil", plano: "Melhorar gestão de tempo", acoes: [{ text: "Implementar método GTD", done: true }, { text: "Check-in semanal com gestor", done: true }], progresso: 70, prazo: "Abr/2026", status: "Em dia" },
-  { name: "Eduardo Paulino", competencia: "Foco Estratégico", plano: "Storytelling de dados", acoes: [{ text: "Curso storytelling", done: true }, { text: "Apresentar em All Hands", done: true }, { text: "Mentoria com CMO", done: false }], progresso: 55, prazo: "Jun/2026", status: "Em dia" },
-];
+import { useAuth } from "@/contexts/AuthContext";
+import { pdiStore, type PDIRecord } from "@/lib/dataStore";
+import { Target, Plus, CheckCircle2, Clock, AlertTriangle, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function PDIPage() {
-  const [search, setSearch] = useState("");
-  const filtered = pdis.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  const { user, isAdmin, isLeader, getTeamMembers } = useAuth();
+  const [pdis, setPdis] = useState<PDIRecord[]>([]);
+  const [showNew, setShowNew] = useState(false);
+  const [editingPdi, setEditingPdi] = useState<PDIRecord | null>(null);
+
+  useEffect(() => { refresh(); }, [user]);
+
+  const refresh = () => {
+    if (!user) return;
+    if (isAdmin) setPdis(pdiStore.getAll());
+    else if (isLeader) {
+      const teamIds = getTeamMembers().map(m => m.id);
+      setPdis(pdiStore.getAll().filter(p => teamIds.includes(p.userId) || p.userId === user.id));
+    } else setPdis(pdiStore.getByUser(user.id));
+  };
+
+  const statusIcon = (s: string) => {
+    if (s === "concluido") return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+    if (s === "atrasado") return <AlertTriangle className="h-4 w-4 text-destructive" />;
+    if (s === "em_andamento") return <Clock className="h-4 w-4 text-yellow-500" />;
+    return <Clock className="h-4 w-4 text-muted-foreground" />;
+  };
+
+  const statusLabel = (s: string) => {
+    const map: Record<string, string> = { em_andamento: "Em andamento", concluido: "Concluído", atrasado: "Atrasado", nao_iniciado: "Não iniciado" };
+    return map[s] || s;
+  };
+
+  const typeLabel = (t: string) => t === "70" ? "70% — Experiência" : t === "20" ? "20% — Relações" : "10% — Educação";
+  const typeColor = (t: string) => t === "70" ? "bg-blue-100 text-blue-700" : t === "20" ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700";
+
+  const handleDelete = (id: string) => { pdiStore.delete(id); refresh(); toast.success("PDI removido"); };
+
+  const handleUpdateProgress = (id: string, progress: number) => {
+    pdiStore.update(id, { progress, status: progress >= 100 ? "concluido" : "em_andamento", updatedAt: new Date().toISOString() });
+    refresh();
+  };
 
   return (
     <>
-      <PageHeader title="PDI" subtitle="Planos de Desenvolvimento Individual — modelo 70-20-10">
-        <Button size="sm" className="gradient-brand text-primary-foreground border-0 text-[13px]">
-          <Plus className="h-3.5 w-3.5 mr-1" /> Novo PDI
-        </Button>
+      <PageHeader title="PDI — Plano de Desenvolvimento" subtitle="Modelo 70-20-10 · Experiência, Relações e Educação">
+        <Dialog open={showNew} onOpenChange={setShowNew}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="gradient-brand text-white border-0 text-[13px] gap-1.5"><Plus className="h-3.5 w-3.5" /> Novo PDI</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader><DialogTitle>Criar PDI</DialogTitle></DialogHeader>
+            <PDIForm user={user!} onSave={() => { setShowNew(false); refresh(); toast.success("PDI criado!"); }} />
+          </DialogContent>
+        </Dialog>
       </PageHeader>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-        <StatCard title="PDIs Ativos" value={156} icon={Target} variant="purple" />
-        <StatCard title="Em Dia" value="78%" icon={CheckCircle2} variant="green" />
-        <StatCard title="Atrasados" value={18} icon={AlertTriangle} variant="orange" />
-        <StatCard title="Próximo Check-in" value="D+30" subtitle="22/04/2026" icon={Clock} variant="blue" />
+      {/* 70-20-10 summary */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        {[
+          { type: "70", label: "Experiência", desc: "Aprender fazendo", color: "bg-blue-50 border-blue-200" },
+          { type: "20", label: "Relações", desc: "Mentorias e trocas", color: "bg-green-50 border-green-200" },
+          { type: "10", label: "Educação", desc: "Cursos e formações", color: "bg-purple-50 border-purple-200" },
+        ].map(cat => {
+          const items = pdis.filter(p => p.type === cat.type);
+          const completed = items.filter(p => p.status === "concluido").length;
+          return (
+            <div key={cat.type} className={`rounded-lg border p-4 ${cat.color}`}>
+              <p className="text-[13px] font-semibold text-foreground">{cat.type}% — {cat.label}</p>
+              <p className="text-[11px] text-muted-foreground">{cat.desc}</p>
+              <p className="text-lg font-bold text-foreground mt-2">{completed}/{items.length}</p>
+            </div>
+          );
+        })}
       </div>
 
-      {/* 70-20-10 */}
-      <div className="rounded-lg border border-border bg-card p-4 mb-6">
-        <div className="grid gap-4 sm:grid-cols-3">
-          {[
-            { pct: "70%", title: "Experiências Práticas", desc: "Projetos, desafios, entregas reais" },
-            { pct: "20%", title: "Aprendizado Social", desc: "Shadowing, mentoria, feedback" },
-            { pct: "10%", title: "Educação Formal", desc: "Cursos, treinamentos, certificações" },
-          ].map((m, i) => (
-            <div key={i} className="text-center">
-              <p className="text-2xl font-bold text-gradient-brand">{m.pct}</p>
-              <p className="text-[13px] font-medium text-foreground">{m.title}</p>
-              <p className="text-[11px] text-muted-foreground">{m.desc}</p>
+      {pdis.length === 0 ? (
+        <div className="flex flex-col items-center py-16 text-center">
+          <Target className="h-10 w-10 text-muted-foreground/40 mb-3" />
+          <p className="text-sm text-muted-foreground mb-4">Nenhum PDI cadastrado</p>
+          <Button size="sm" onClick={() => setShowNew(true)} className="gradient-brand text-white border-0">Criar primeiro PDI</Button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {pdis.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(pdi => (
+            <div key={pdi.id} className="rounded-lg border border-border bg-card p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  {statusIcon(pdi.status)}
+                  <div>
+                    <p className="text-[13px] font-medium text-foreground">{pdi.title}</p>
+                    <p className="text-[11px] text-muted-foreground">{pdi.userName} · {pdi.competency}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={`text-[10px] ${typeColor(pdi.type)}`}>{typeLabel(pdi.type)}</Badge>
+                  <Badge variant="outline" className="text-[10px]">{statusLabel(pdi.status)}</Badge>
+                  <button onClick={() => handleDelete(pdi.id)} className="text-muted-foreground hover:text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+              {pdi.description && <p className="text-[12px] text-muted-foreground mt-2 ml-7">{pdi.description}</p>}
+              <div className="mt-3 ml-7 flex items-center gap-3">
+                <Progress value={pdi.progress} className="flex-1 h-2" />
+                <span className="text-[11px] font-medium text-muted-foreground">{pdi.progress}%</span>
+                <div className="flex gap-1">
+                  {[0, 25, 50, 75, 100].map(v => (
+                    <button key={v} onClick={() => handleUpdateProgress(pdi.id, v)}
+                      className={`h-6 w-8 rounded text-[10px] transition-colors ${pdi.progress === v ? "gradient-brand text-white" : "border border-border hover:bg-muted"}`}>{v}</button>
+                  ))}
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1 ml-7">Prazo: {new Date(pdi.deadline).toLocaleDateString("pt-BR")}</p>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Search */}
-      <div className="relative max-w-xs mb-3">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-        <Input placeholder="Buscar colaborador..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 h-8 text-[13px]" />
-      </div>
-
-      {/* PDI Cards */}
-      <div className="space-y-3">
-        {filtered.map((p, i) => (
-          <div key={i} className="rounded-lg border border-border bg-card p-4 hover:border-primary/20 transition-colors cursor-pointer">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
-                  {p.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
-                </div>
-                <div>
-                  <p className="text-[13px] font-medium text-foreground">{p.name}</p>
-                  <p className="text-[11px] text-primary">{p.competencia}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                  p.status === "Em dia" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"
-                }`}>{p.status}</span>
-                <span className="text-[11px] text-muted-foreground">{p.prazo}</span>
-              </div>
-            </div>
-            <p className="text-[13px] font-medium text-foreground mb-2 ml-11">{p.plano}</p>
-            <div className="space-y-1.5 ml-11 mb-3">
-              {p.acoes.map((a, j) => (
-                <div key={j} className="flex items-center gap-2">
-                  <Checkbox checked={a.done} className="h-3.5 w-3.5" />
-                  <span className={`text-[12px] ${a.done ? "line-through text-muted-foreground" : "text-foreground"}`}>{a.text}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex items-center gap-3 ml-11">
-              <Progress value={p.progresso} className="flex-1 h-1.5" />
-              <span className="text-[11px] font-medium text-muted-foreground">{p.progresso}%</span>
-            </div>
-          </div>
-        ))}
-      </div>
+      )}
     </>
+  );
+}
+
+function PDIForm({ user, onSave }: { user: any; onSave: () => void }) {
+  const [title, setTitle] = useState("");
+  const [competency, setCompetency] = useState("");
+  const [type, setType] = useState<"70" | "20" | "10">("70");
+  const [description, setDescription] = useState("");
+  const [deadline, setDeadline] = useState("");
+
+  const competencies = [
+    "Foco Estratégico e Analítico", "Execução Ágil", "Inovação",
+    "Conexão e Desenvolvimento", "Liderança", "Fomento a Comunidade",
+    "Geração de Demanda", "Conversão IA+Humano", "Entrega Encantadora", "Operação Eficiente",
+  ];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    pdiStore.create({
+      userId: user.id,
+      userName: user.name,
+      title,
+      competency,
+      type,
+      description,
+      deadline,
+      status: "nao_iniciado",
+      progress: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    onSave();
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-1.5">
+        <Label className="text-[12px]">Título da ação</Label>
+        <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Liderar projeto de automação" required />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label className="text-[12px]">Competência</Label>
+          <Select value={competency} onValueChange={setCompetency}>
+            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>{competencies.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-[12px]">Tipo (70-20-10)</Label>
+          <Select value={type} onValueChange={(v: any) => setType(v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="70">70% — Experiência</SelectItem>
+              <SelectItem value="20">20% — Relações</SelectItem>
+              <SelectItem value="10">10% — Educação</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-[12px]">Descrição</Label>
+        <Textarea rows={3} value={description} onChange={e => setDescription(e.target.value)} placeholder="Descreva a ação..." />
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-[12px]">Prazo</Label>
+        <Input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} required />
+      </div>
+      <Button type="submit" className="w-full gradient-brand text-white border-0" disabled={!title || !competency}>Criar PDI</Button>
+    </form>
   );
 }
