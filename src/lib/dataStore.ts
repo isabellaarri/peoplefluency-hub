@@ -11,7 +11,7 @@ export interface OneOnOneRecord {
   topics: string[];
   notes: string;
   actionItems: string[];
-  mood: number; // 1-5
+  mood: number;
   status: "agendada" | "realizada" | "cancelada";
   createdBy: string;
 }
@@ -23,7 +23,7 @@ export interface FeedbackRecord {
   fromName: string;
   toId: string;
   toName: string;
-  type: "situacao" | "comportamento" | "consequencia" | "sugestao"; // SCCS
+  type: "situacao" | "comportamento" | "consequencia" | "sugestao";
   situation: string;
   behavior: string;
   consequence: string;
@@ -39,7 +39,7 @@ export interface SentimentRecord {
   userName: string;
   departamento: string;
   time: string;
-  score: number; // 1-5
+  score: number;
   comment: string;
   tags: string[];
 }
@@ -50,7 +50,7 @@ export interface PDIRecord {
   userName: string;
   title: string;
   competency: string;
-  type: "70" | "20" | "10"; // 70-20-10
+  type: "70" | "20" | "10";
   description: string;
   deadline: string;
   status: "em_andamento" | "concluido" | "atrasado" | "nao_iniciado";
@@ -68,6 +68,62 @@ export interface WeeklyDelivery {
   loopValorStage: string;
   fluencyValue: string;
   status: "entregue" | "em_andamento" | "pendente";
+  createdAt: string;
+}
+
+export interface VacationRecord {
+  id: string;
+  userId: string;
+  userName: string;
+  type: "ferias" | "recesso" | "day_off" | "licenca";
+  startDate: string;
+  endDate: string;
+  days: number;
+  status: "aprovada" | "pendente" | "rejeitada" | "em_gozo";
+  notes: string;
+  approvedBy: string;
+  createdAt: string;
+}
+
+export interface SurveyRecord {
+  id: string;
+  title: string;
+  description: string;
+  type: "clima" | "pulso" | "enps" | "custom";
+  status: "rascunho" | "ativa" | "encerrada";
+  questions: SurveyQuestion[];
+  targetAudience: "todos" | "time" | "departamento";
+  startDate: string;
+  endDate: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface SurveyQuestion {
+  id: string;
+  text: string;
+  type: "escala" | "texto" | "multipla_escolha" | "sim_nao";
+  options?: string[];
+  required: boolean;
+}
+
+export interface SurveyResponse {
+  id: string;
+  surveyId: string;
+  userId: string;
+  userName: string;
+  answers: Record<string, string | number>;
+  anonymous: boolean;
+  submittedAt: string;
+}
+
+export interface WeeklyPriority {
+  id: string;
+  userId: string;
+  userName: string;
+  weekStart: string;
+  priorities: { text: string; loopStage: string; completed: boolean }[];
+  reflection: string;
   createdAt: string;
 }
 
@@ -105,8 +161,7 @@ export const oneOnOneStore = {
     return records[idx];
   },
   delete: (id: string) => {
-    const records = getStore<OneOnOneRecord>("one_on_ones").filter(r => r.id !== id);
-    setStore("one_on_ones", records);
+    setStore("one_on_ones", getStore<OneOnOneRecord>("one_on_ones").filter(r => r.id !== id));
   },
 };
 
@@ -175,5 +230,88 @@ export const deliveryStore = {
     records.push(newRecord);
     setStore("deliveries", records);
     return newRecord;
+  },
+};
+
+// === FÉRIAS / RECESSO ===
+export const vacationStore = {
+  getAll: () => getStore<VacationRecord>("vacations"),
+  getByUser: (userId: string) => getStore<VacationRecord>("vacations").filter(r => r.userId === userId),
+  create: (data: Omit<VacationRecord, "id">) => {
+    const records = getStore<VacationRecord>("vacations");
+    const newRecord = { ...data, id: generateId() };
+    records.push(newRecord);
+    setStore("vacations", records);
+    return newRecord;
+  },
+  update: (id: string, data: Partial<VacationRecord>) => {
+    const records = getStore<VacationRecord>("vacations");
+    const idx = records.findIndex(r => r.id === id);
+    if (idx >= 0) { records[idx] = { ...records[idx], ...data }; setStore("vacations", records); }
+    return records[idx];
+  },
+  delete: (id: string) => {
+    setStore("vacations", getStore<VacationRecord>("vacations").filter(r => r.id !== id));
+  },
+};
+
+// === PESQUISAS ===
+export const surveyStore = {
+  getAll: () => getStore<SurveyRecord>("surveys"),
+  getActive: () => getStore<SurveyRecord>("surveys").filter(r => r.status === "ativa"),
+  create: (data: Omit<SurveyRecord, "id">) => {
+    const records = getStore<SurveyRecord>("surveys");
+    const newRecord = { ...data, id: generateId() };
+    records.push(newRecord);
+    setStore("surveys", records);
+    return newRecord;
+  },
+  update: (id: string, data: Partial<SurveyRecord>) => {
+    const records = getStore<SurveyRecord>("surveys");
+    const idx = records.findIndex(r => r.id === id);
+    if (idx >= 0) { records[idx] = { ...records[idx], ...data }; setStore("surveys", records); }
+    return records[idx];
+  },
+  delete: (id: string) => {
+    setStore("surveys", getStore<SurveyRecord>("surveys").filter(r => r.id !== id));
+  },
+};
+
+export const surveyResponseStore = {
+  getAll: () => getStore<SurveyResponse>("survey_responses"),
+  getBySurvey: (surveyId: string) => getStore<SurveyResponse>("survey_responses").filter(r => r.surveyId === surveyId),
+  getByUser: (userId: string) => getStore<SurveyResponse>("survey_responses").filter(r => r.userId === userId),
+  create: (data: Omit<SurveyResponse, "id">) => {
+    const records = getStore<SurveyResponse>("survey_responses");
+    const newRecord = { ...data, id: generateId() };
+    records.push(newRecord);
+    setStore("survey_responses", records);
+    return newRecord;
+  },
+};
+
+// === PRIORIDADES SEMANAIS ===
+export const priorityStore = {
+  getAll: () => getStore<WeeklyPriority>("priorities"),
+  getByUser: (userId: string) => getStore<WeeklyPriority>("priorities").filter(r => r.userId === userId),
+  getCurrentWeek: (userId: string) => {
+    const now = new Date();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - now.getDay() + 1);
+    const weekStart = monday.toISOString().split("T")[0];
+    return getStore<WeeklyPriority>("priorities").find(r => r.userId === userId && r.weekStart === weekStart);
+  },
+  create: (data: Omit<WeeklyPriority, "id">) => {
+    const records = getStore<WeeklyPriority>("priorities");
+    const newRecord = { ...data, id: generateId() };
+    records.push(newRecord);
+    setStore("priorities", records);
+    return newRecord;
+  },
+  update: (id: string, data: Partial<WeeklyPriority>) => {
+    const records = getStore<WeeklyPriority>("priorities");
+    const idx = records.findIndex(r => r.id === id);
+    if (idx >= 0) { records[idx] = { ...records[idx], ...data }; setStore("priorities", records); }
+    return records[idx];
   },
 };
