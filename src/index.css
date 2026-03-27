@@ -37,7 +37,7 @@
 
     --radius: 0.5rem;
 
-    /* Fluency Brand — exact HEX values */
+    /* Fluency brand — exact HEX */
     --fluency-purple: 256 74% 59%;         /* #6F47E5 */
     --fluency-purple-light: 252 100% 73%;  /* #8A75FF */
     --fluency-deep-purple: 272 96% 19%;    /* #320261 */
@@ -98,9 +98,7 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+  * { @apply border-border; }
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -108,8 +106,61 @@
   }
 }
 
+/* ── Shadcn component overrides — Fluency brand ──────────────────── */
+@layer components {
+
+  /* Progress bar — roxo Fluency em vez do cinza padrão */
+  [role="progressbar"] > div,
+  .progress-indicator {
+    background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--fluency-purple-light))) !important;
+  }
+
+  /* Tabs active indicator */
+  [data-state="active"][role="tab"] {
+    color: hsl(var(--primary));
+    border-bottom-color: hsl(var(--primary));
+  }
+
+  /* Badge default — roxo suave */
+  .badge-default,
+  [data-variant="default"].badge {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  /* Checkbox checked */
+  [data-state="checked"][role="checkbox"] {
+    background: hsl(var(--primary));
+    border-color: hsl(var(--primary));
+  }
+
+  /* Switch checked */
+  [data-state="checked"][role="switch"] {
+    background: hsl(var(--primary));
+  }
+
+  /* Focus ring — usa cor da marca */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--primary) / 0.5);
+    outline-offset: 2px;
+  }
+
+  /* Dialog overlay */
+  [data-radix-dialog-overlay] {
+    background: hsl(272 96% 5% / 0.6);
+    backdrop-filter: blur(2px);
+  }
+
+  /* Select item hover */
+  [role="option"]:hover,
+  [role="option"][data-highlighted] {
+    background: hsl(var(--primary) / 0.08);
+    color: hsl(var(--primary));
+  }
+}
+
+/* ── Utilities ───────────────────────────────────────────────────── */
 @layer utilities {
-  /* Brand gradients */
   .gradient-brand {
     background: linear-gradient(135deg, hsl(256 74% 59%) 0%, hsl(252 100% 73%) 100%);
   }
@@ -123,7 +174,7 @@
     background-clip: text;
   }
 
-  /* Card with left accent bar (Qulture-style) */
+  /* Card accent bar — estilo Qulture.Rocks */
   .card-accent-left {
     border-left: 3px solid hsl(var(--primary)) !important;
     border-radius: 0 var(--radius) var(--radius) 0 !important;
