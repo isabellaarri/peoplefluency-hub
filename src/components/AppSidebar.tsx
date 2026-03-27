@@ -98,6 +98,7 @@ export function AppSidebar() {
           icon: FileQuestion,
           badge: pendingSurveys > 0 ? pendingSurveys : undefined,
         },
+        ...(!isAdmin ? [{ title: "Férias", url: "/ferias", icon: Palmtree }] : []),
       ],
     },
     {
