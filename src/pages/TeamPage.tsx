@@ -113,6 +113,7 @@ export default function TeamPage() {
       </div>
 
       {/* Stats */}
+      <div id="team-content">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatCard title="Total" value={baseTeam.length} icon={Users} variant="purple" />
         <StatCard title="Check-in hoje" value={`${checkedToday}/${baseTeam.length}`} icon={Heart} variant="pink" />
