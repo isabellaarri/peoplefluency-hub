@@ -24,16 +24,8 @@ export default function TeamPage() {
   const [filterDept, setFilterDept] = useState("todos");
   const [filterCluster, setFilterCluster] = useState("todos");
 
-  if (!isLeader) {
-    return (
-      <>
-        <PageHeader title="Minha Equipe" subtitle="Acesso restrito a líderes" />
-        <p className="text-sm text-muted-foreground">Você não tem permissão para acessar esta página.</p>
-      </>
-    );
-  }
-
-  const baseTeam = isAdmin
+  const baseTeam = (isLeader || isAdmin)
+    ? (isAdmin
     ? allUsers.filter((m) => m.id !== user?.id)
     : getTeamMembers().filter((m) => m.id !== user?.id);
 
