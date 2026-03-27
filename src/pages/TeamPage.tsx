@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
+import { ExportButtons } from "@/components/ExportButtons";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -95,12 +96,24 @@ export default function TeamPage() {
 
   return (
     <>
-      <PageHeader
-        title={isAdmin ? "Colaboradores" : "Minha Equipe"}
-        subtitle={`${team.length} de ${baseTeam.length} ${isAdmin ? "colaboradores" : "liderados"}`}
-      />
+      <div className="flex items-center justify-between mb-4">
+        <PageHeader
+          title={isAdmin ? "Colaboradores" : "Minha Equipe"}
+          subtitle={`${team.length} de ${baseTeam.length} ${isAdmin ? "colaboradores" : "liderados"}`}
+        />
+        <ExportButtons
+          csvData={team.map(m => ({
+            Nome: m.name, Cargo: m.cargo, Departamento: m.departamento,
+            Cluster: m.clusterCargo, Vínculo: m.vinculo, Gestor: m.gestorAtual,
+          }))}
+          csvFilename="equipe"
+          dashboardId="team-content"
+          dashboardFilename="equipe"
+        />
+      </div>
 
       {/* Stats */}
+      <div id="team-content">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatCard title="Total" value={baseTeam.length} icon={Users} variant="purple" />
         <StatCard title="Check-in hoje" value={`${checkedToday}/${baseTeam.length}`} icon={Heart} variant="pink" />
@@ -233,6 +246,7 @@ export default function TeamPage() {
             <p className="text-sm text-muted-foreground">Nenhum colaborador encontrado</p>
           </div>
         )}
+      </div>
       </div>
     </>
   );

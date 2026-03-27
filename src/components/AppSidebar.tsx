@@ -98,7 +98,7 @@ export function AppSidebar() {
           icon: FileQuestion,
           badge: pendingSurveys > 0 ? pendingSurveys : undefined,
         },
-        { title: "Férias", url: "/ferias", icon: Palmtree },
+        ...(!isAdmin ? [{ title: "Férias", url: "/ferias", icon: Palmtree }] : []),
       ],
     },
     {
@@ -117,6 +117,7 @@ export function AppSidebar() {
       moduleColor: "#6F47E5", // fluency-purple
       items: [
         { title: "Colaboradores", url: "/equipe", icon: UsersRound },
+        { title: "Férias", url: "/ferias", icon: Palmtree },
         { title: "People Planning", url: "/people-planning", icon: GitBranch },
         { title: "Relatórios", url: "/relatorios", icon: BarChart2 },
       ],
