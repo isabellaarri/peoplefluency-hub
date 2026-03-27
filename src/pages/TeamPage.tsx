@@ -24,8 +24,7 @@ export default function TeamPage() {
   const [filterDept, setFilterDept] = useState("todos");
   const [filterCluster, setFilterCluster] = useState("todos");
 
-  const baseTeam = (isLeader || isAdmin)
-    ? (isAdmin
+  const baseTeam = isAdmin
     ? allUsers.filter((m) => m.id !== user?.id)
     : getTeamMembers().filter((m) => m.id !== user?.id);
 
