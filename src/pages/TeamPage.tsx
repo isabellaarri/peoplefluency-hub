@@ -96,10 +96,21 @@ export default function TeamPage() {
 
   return (
     <>
-      <PageHeader
-        title={isAdmin ? "Colaboradores" : "Minha Equipe"}
-        subtitle={`${team.length} de ${baseTeam.length} ${isAdmin ? "colaboradores" : "liderados"}`}
-      />
+      <div className="flex items-center justify-between mb-4">
+        <PageHeader
+          title={isAdmin ? "Colaboradores" : "Minha Equipe"}
+          subtitle={`${team.length} de ${baseTeam.length} ${isAdmin ? "colaboradores" : "liderados"}`}
+        />
+        <ExportButtons
+          csvData={team.map(m => ({
+            Nome: m.name, Cargo: m.cargo, Departamento: m.departamento,
+            Cluster: m.clusterCargo, Vínculo: m.vinculo, Gestor: m.gestorAtual,
+          }))}
+          csvFilename="equipe"
+          dashboardId="team-content"
+          dashboardFilename="equipe"
+        />
+      </div>
 
       {/* Stats */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-6">
