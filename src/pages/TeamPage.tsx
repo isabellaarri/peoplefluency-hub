@@ -84,6 +84,15 @@ export default function TeamPage() {
     return s && s.score <= 2;
   }).length;
 
+  if (!isLeader && !isAdmin) {
+    return (
+      <>
+        <PageHeader title="Minha Equipe" subtitle="Acesso restrito a líderes" />
+        <p className="text-sm text-muted-foreground">Você não tem permissão para acessar esta página.</p>
+      </>
+    );
+  }
+
   return (
     <>
       <PageHeader
